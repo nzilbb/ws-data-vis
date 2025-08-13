@@ -64,6 +64,10 @@ theme_set(theme_bw())
     - We'll use this for the rest of the 'Foundations' sessions.
 3. Exploratory visualisation with `ggplot2`.
 
+:::fragment
+Slides: [nzilbb.github.io/ws-data-vis/slides](https://nzilbb.github.io/ws-data-vis/slides)
+:::
+
 # Markdown
 
 ## Markdown

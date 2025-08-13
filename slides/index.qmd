@@ -1,0 +1,441 @@
+---
+title: "Foundations"
+subtitle: "Session 3: Exploratory Data Visualisation"
+# For author options see : 
+# https://quarto.org/docs/authoring/front-matter.html#authors-and-affiliations
+# NB: multiple authors can be added here.
+author:
+  - name:
+      given: Joshua
+      family: Wilson Black
+    email: joshua.black@canterbury.ac.nz
+    orcid: 0000-0002-8272-5763
+    affiliation: 
+      - "Te Kāhui Roro Reo | New Zealand Institute of Language, Brain and Behaviour"
+      - "Te Whare Wānanga o Waitaha | University of Canterbury"
+format:
+  revealjs:
+    theme: [custom.scss]
+    incremental: true
+    logo: images/NZILBB-small.svg
+    template-partials:
+      - title-slide.html
+    title-slide-attributes:
+      # If you have Marsden funding, change image name to `nzilbb-uc-marsden.svg`
+      data-background-image: images/nzilbb-uc.svg
+      # First number controls the horizontal position, second controls vertical.
+      data-background-position: '50% 5%'
+      # Controls size of image relative to width of the slide.
+      data-background-size: 70%
+    embed-resources: false
+    include-in-header:
+      - text: |
+          <link rel="icon" type="image/png" sizes="32x32" href=".//images/fav.png" />
+bibliography: 
+  - grateful-refs.bib
+  - stat_workshops.bib
+editor: 
+  markdown: 
+    wrap: 72
+execute: 
+  echo: true
+knitr:
+  opts_chunk: 
+    dev: "png"
+    dev.args: 
+      bg: "transparent"
+---
+
+```{r}
+#| echo: false
+library(tidyverse)
+library(here)
+
+theme_set(theme_bw())
+```
+
+# Overview
+
+## Overview
+
+1. New infrastructure: Markdown
+2. Download some data from OSF.io.
+    - Topic: Word usage factors and duration.
+    - We'll use this for the rest of the 'Foundations' sessions.
+3. Exploratory visualisation with `ggplot2`.
+
+# Markdown
+
+## Markdown
+
+- Markdown is a 'markup' language
+    - Like LaTeX or HTML.
+- Markdown was designed to be easy to read (for a human).
+- We combine text in markdown with blocks of code.
+- This is a variety of 'literate programming'.
+- Markdown documents can be turned into pdf (via LaTeX), HTML, OpenOffice
+or Word files.
+
+---
+
+```
+## Markdown
+
+- Markdown is a 'markup' language
+    - Like LaTeX or HTML.
+- Markdown was designed to be easy to read (for a human).
+- We combine text in markdown with blocks of code.
+- This is a variety of 'literate programming'.
+- Markdown documents can be turned into pdf (via LaTeX), HTML, OpenOffice
+or Word files.
+```
+
+## {.smaller}
+
+```html
+<section id="markdown-1" class="slide level2">
+<h2>Markdown</h2>
+<ul>
+<li class="fragment">Markdown is a ‘markup’ language
+<ul>
+<li class="fragment">Like LaTeX or HTML.</li>
+</ul></li>
+<li class="fragment">Markdown was designed to be easy to read (for a human).</li>
+<li class="fragment">We combine text in markdown with blocks of code.</li>
+<li class="fragment">This is a variety of ‘literate programming’.</li>
+<li class="fragment">Markdown documents can be turned into pdf (via LaTeX), HTML, OpenOffice or Word files.</li>
+</ul>
+</section>
+```
+
+## Quarto
+
+- Quarto is a "an open-source scientific and technical publishing system"
+- Developed by Posit (formerly RStudio)
+- It is almost entirely compatible with RMarkdown
+- Quarto is 'multilingual' --- designed from scratch to work with 
+Python, Julia, etc.
+- Quarto documents allow us to run code blocks and publish the output.
+
+---
+
+![Source view of a Quarto Document open in RStudio.](images/markdown_example.png)
+
+## Tips and tricks
+
+- RStudio provides a 'Source' and a 'Visual' mode (toggle at top of source window).
+- The 'Visual' mode is more like a traditional word processor.
+- I always use the 'Source' mode 🤓
+- Keyboard shortcuts:
+    - Ctrl/Cmd + Alt + I (**I**nsert new code block)
+    - Ctrl/Cmd + Alt + N (Run **n**ext code block.)
+    
+## NZILBB template
+
+- Work-in-progress: an NZILBB Quarto template
+
+::: fragment
+```
+# Run in terminal
+quarto use template JoshuaWilsonBlack/nzilbb_doc
+```
+:::
+
+# Get some data
+
+## Word duration datas
+
+- We will be exploring data from @soskuthyChangingWordUsage2017
+- Topic: how word 'usage factors' affect word duration.
+    - Usage factors include how _frequent_ a word is, how _predictable_ it is
+    in context etc.
+    - Upshot: Change in usage factors over long time periods affects word duration.
+    - Upshot: There's some kind of feedback mechanism between production and perception of words.
+- Data is shared via [OSF.io](https://osf.io/q5wgh/)
+
+# Plotting with `ggplot2`
+
+## The 'grammar'
+
+- The 'gg' in `ggplot2` stands for 'grammar of graphics'.
+- What's the grammar?
+
+::: fragment
+> ...a statistical graphic is a [mapping]{.red} from data to aesthetic attributes
+(colour, shape, size) of [geometric objects]{.red} (points, lines, bars). The plot may
+also contain [statistical transformations]{.red} of the data and is drawn on a
+specific [coordinate system]{.red}. [@wickham2016ggplot2, 4]
+
+:::
+
+- See: _The Grammar of Graphics_ [@wilkinsonGrammarGraphics1999]
+
+## The implementation
+
+1. Data
+2. Aesthetic mappings [(from variables to visual properties)]{.fragment}
+3. Layers [(points, lines, bars...)]{.fragment}
+4. Scales and co-ordinates [(specify *how* the mappings work)]{.fragment}
+5. Facets [(subgroups in data -> subplots)]{.fragment}
+6. Theme [(e.g., font size, background colour...)]{.fragment}
+
+## Data
+
+```{r}
+#| eval: false
+big_dia <- read_csv(here('data', 'big_dia.csv'))
+
+big_dia |> 
+  head()
+```
+
+---
+
+```{r}
+#| echo: false
+# Add some styling which would be a distraction in the workshop itself.
+
+big_dia <- read_csv(here('data', 'big_dia.csv'))
+
+big_dia |> 
+  head() |> 
+  knitr::kable() |> 
+  kableExtra::kable_styling(font_size=22)
+```
+
+## Aesthetic mappings
+
+::: columns
+
+:::: {.column width="60%"}
+
+::::: fragment
+```{r}
+#| label: fig-init
+#| fig.cap: |
+#|     Output with only aesthetic mappings specified. `ggplot2` sets up a
+#|     default scale for the x-axis.
+#| output-location: slide
+big_dia |> 
+  ggplot(
+    mapping = aes(
+      x = WordDuration,
+      fill = Corpus
+    )
+  )
+```
+:::::
+
+- We 'map':
+    - word duration to position on x-axis.
+    - corpus (i.e., which collection of recordings) to 'fill'
+
+::::
+
+:::: {.column width="40%"}
+
+- No 'layers' yet.
+- `ggplot2` still produces output...
+
+::::
+
+:::
+
+## Layers
+
+```{r}
+#| label: fig-fill-scaled-histogram
+#| fig.cap: |
+#|     Histogram with 30 bins and fill for corpus. 
+#| output-location: slide
+#| code-line-numbers: "8"
+big_dia |> 
+  ggplot(
+    mapping = aes(
+      x = WordDuration,
+      fill = Corpus
+    )
+  ) +
+  geom_histogram(bins = 30) 
+```
+
+- Layers tend to start with `geom_`.
+- `geom_histogram()` creates a histogram.
+- Layers have options (arguments) which modify their appearance.
+
+## Layers (II)
+
+```{r}
+#| label: fig-fill-scaled-density
+#| fig.cap: |
+#|     Density with 30 bins and fill for corpus. 
+#| output-location: slide
+#| code-line-numbers: "8"
+big_dia |> 
+  ggplot(
+    mapping = aes(
+      x = WordDuration,
+      fill = Corpus
+    )
+  ) +
+  geom_density(alpha = 0.2)
+```
+
+- An alternative layer with the *same aesthetic mapping*.
+- `geom_density()` creates a density plot.
+
+## Layers (III)
+
+```{r}
+#| label: fig-fill-col-scaled-density
+#| fig.cap: |
+#|     Density with 30 bins and colour and fill for corpus. 
+#| output-location: slide
+#| code-line-numbers: "5"
+big_dia |> 
+  ggplot(
+    mapping = aes(
+      x = WordDuration,
+      fill = Corpus,
+      colour = Corpus
+    )
+  ) +
+  geom_density(alpha = 0.2)
+```
+
+- We can go back and change the aesthetic mapping.
+- NB: difference between 'fill' and 'colour'!
+
+## Scales
+
+```{r}
+#| label: fig-density-scale
+#| fig.cap: |
+#|     Density with 30 bins and colour and fill for corpus. Both colour and fill
+#|     modified from default scales.
+#| output-location: slide
+#| code-line-numbers: "10-15"
+big_dia |> 
+  ggplot(
+    mapping = aes(
+      x = WordDuration,
+      fill = Corpus,
+      colour = Corpus
+    )
+  ) +
+  geom_density(alpha = 0.2) +
+  scale_fill_manual(
+    values = c("MU" = "#b120cf", "IA" = "#cfb120", "CC" = "#20cfb1")
+  ) +
+  scale_colour_manual(
+    values = c("MU" = "#b120cf", "IA" = "#cfb120", "CC" = "#20cfb1")
+  )
+```
+
+- Functions which start with `scale_` help to specify aesthetic mappings.
+- i.e., *this* data value goes to *that* colour, etc.
+
+## Coordinates
+
+```{r}
+#| label: fig-density-coord
+#| fig.cap: |
+#|     Density with 30 bins and colour and fill for corpus. Both colour and fill
+#|     modified from default scales. Silly coordinate added.
+#| output-location: slide
+#| code-line-numbers: "15"
+big_dia |> 
+  ggplot(
+    mapping = aes(
+      x = WordDuration,
+      fill = Corpus,
+      colour = Corpus
+    )
+  ) +
+  geom_density(alpha = 0.2) +
+  scale_fill_manual(
+    values = c("MU" = "#b120cf", "IA" = "#cfb120", "CC" = "#20cfb1")
+  ) +
+  scale_colour_manual(
+    values = c("MU" = "#b120cf", "IA" = "#cfb120", "CC" = "#20cfb1")
+  ) +
+  coord_cartesian(xlim = c(-2.5, 2.5))
+```
+
+- Coordinate systems also determine the mapping.
+- A lot of overlap with scales.
+
+## Facets
+
+```{r}
+#| label: fig-density-facet
+#| fig.cap: |
+#|     Density with 30 bins and colour and fill for corpus. Faceted by word finality.
+#| output-location: slide
+#| code-line-numbers: "15"
+big_dia |> 
+  ggplot(
+    mapping = aes(
+      x = WordDuration,
+      fill = Corpus,
+      colour = Corpus
+    )
+  ) +
+  geom_density(alpha = 0.2) +
+  scale_fill_manual(
+    values = c("MU" = "#b120cf", "IA" = "#cfb120", "CC" = "#20cfb1")
+  ) +
+  scale_colour_manual(
+    values = c("MU" = "#b120cf", "IA" = "#cfb120", "CC" = "#20cfb1")
+  ) +
+  facet_grid(vars(final))
+```
+- We use facets to create subplots.
+- Note use of `var()` function.
+
+## The Forbidden Plot
+
+- Pie charts are out of fashion.
+- I used to (wrongly!) say you can't even make them in `ggplot2`. 
+
+::: fragment
+```{r}
+#| label: fig-forbidden
+#| fig.cap: |
+#|     The forbidden plot.
+#| output-location: slide
+big_dia |> 
+  ggplot(
+    aes(
+      x = factor(1),
+      fill = Corpus
+    )
+  ) +
+  geom_bar(width=1, colour="white") +
+  scale_fill_manual(
+    values = c("MU" = "#b120cf", "IA" = "#cfb120", "CC" = "#20cfb1")
+  ) +
+  coord_polar(theta = "y", direction = -1) +
+  theme_void()
+```
+
+:::
+
+## What to do now
+
+1. Go to <https://nzilbb.github.io/statistics_workshops/>
+2. Work through the 'Exploratory Data Visualisation' chapter
+
+# References
+
+```{r}
+#| echo: false
+grateful::nocite_references(
+  grateful::cite_packages(output = "citekeys", out.dir = here('slides'))
+)
+```
+
+
+::: refs
+
+:::

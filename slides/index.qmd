@@ -147,7 +147,7 @@ quarto use template JoshuaWilsonBlack/nzilbb_doc
 
 # Get some data
 
-## Word duration datas
+## Word duration data
 
 - We will be exploring data from @soskuthyChangingWordUsage2017
 - Topic: how word 'usage factors' affect word duration.
